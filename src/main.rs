@@ -6,12 +6,18 @@ use vulkano::VulkanLibrary;
 
 fn main() {
     match initialize_vulkan() {
-        Ok(()) => (),
+        Ok((device, queue)) => (),
         Err(e) => eprintln!("Error: {}", e),
     }
 }
 
-fn initialize_vulkan() -> Result<(), Box<dyn Error>> {
+fn initialize_vulkan() -> Result<
+    (
+        std::sync::Arc<vulkano::device::Device>,
+        std::sync::Arc<vulkano::device::Queue>,
+    ),
+    Box<dyn Error>,
+> {
     let library = VulkanLibrary::new().expect("no local Vulkan library/DLL");
     let instance =
         Instance::new(library, InstanceCreateInfo::default()).expect("failed to create instance");
@@ -43,6 +49,7 @@ fn initialize_vulkan() -> Result<(), Box<dyn Error>> {
         let queue_family_index = selected_device
             .queue_family_properties()
             .iter()
+            .enumerate()
             .position(|(_queue_family_index, queue_family_properties)| {
                 queue_family_properties
                     .queue_flags
@@ -65,9 +72,8 @@ fn initialize_vulkan() -> Result<(), Box<dyn Error>> {
         .expect("failed to create device");
 
         let queue = queues.next().unwrap();
+        Ok((device, queue))
     } else {
-        println!("Invalid selection");
+        Err("Invalid selection".into())
     }
-
-    Ok(())
 }
