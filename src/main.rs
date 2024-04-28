@@ -1,15 +1,11 @@
 use std::error::Error;
 use std::io;
+use std::sync::Arc;
+use vulkano::buffer::{Buffer, BufferCreateInfo, BufferUsage};
 use vulkano::device::{Device, DeviceCreateInfo, QueueCreateInfo, QueueFlags};
 use vulkano::instance::{Instance, InstanceCreateInfo};
+use vulkano::memory::allocator::{AllocationCreateInfo, MemoryTypeFilter, StandardMemoryAllocator};
 use vulkano::VulkanLibrary;
-
-fn main() {
-    match initialize_vulkan() {
-        Ok((device, queue)) => (),
-        Err(e) => eprintln!("Error: {}", e),
-    }
-}
 
 fn initialize_vulkan() -> Result<
     (
@@ -76,4 +72,26 @@ fn initialize_vulkan() -> Result<
     } else {
         Err("Invalid selection".into())
     }
+}
+
+fn create_buffer(
+    device: std::sync::Arc<vulkano::device::Device>,
+    queue: std::sync::Arc<vulkano::device::Queue>,
+) {
+    let memory_allocator = Arc::new(StandardMemoryAllocator::new_default(device.clone()));
+}
+
+fn main() {
+    let init_vulkan_outcome = initialize_vulkan();
+    let (device, queue) = if let Ok(output) = init_vulkan_outcome {
+        (output.0, output.1)
+    } else {
+        eprintln!(
+            "Error initializing Vulkan: {}",
+            init_vulkan_outcome.unwrap_err()
+        );
+        return;
+    };
+
+    let create_buff_outcome = create_buffer(device, queue);
 }
